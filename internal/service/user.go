@@ -75,16 +75,7 @@ func (svc userService) AddUser(ctx *gin.Context) {
 		})
 		return
 	}
-	userId, err := svc.User.RandomUserId()
-	if err != nil {
-		log.Println(err)
-		ctx.JSON(http.StatusOK, Result{
-			Code: 500,
-			Msg:  "请求异常，添加用户失败",
-		})
-		return
-	}
-	user.UserId = userId
+
 	user.LoginTime = time.Now().Unix()
 	if err := svc.User.AddUser(user); err != nil {
 		log.Println(err)

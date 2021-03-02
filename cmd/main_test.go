@@ -37,7 +37,7 @@ func TestAddUser(t *testing.T) {
 	w := httptest.NewRecorder()
 	data := url.Values{}
 	fmt.Println(data.Encode())
-	req := httptest.NewRequest("POST", "/v1/user/", strings.NewReader(`{"nickName":"test user","role":1}`))
+	req := httptest.NewRequest("POST", "/v1/user/", strings.NewReader(`{"nickName":"test user","role":1,"userId":"testAddUserId"}`))
 	req.Header.Set("Content-Type", "application/json")
 
 	route.ServeHTTP(w, req)
@@ -48,7 +48,7 @@ func TestAddUser(t *testing.T) {
 	assert.Equal(t, "success", res.Msg)
 	m := res.Res.(map[string]interface{})
 	userId := m["userId"].(string)
-	assert.NotEqual(t, "", userId)
+	assert.Equal(t, "testAddUserId", userId)
 
 	cases := []struct {
 		caseName string
@@ -82,10 +82,10 @@ func TestDestroyUser(t *testing.T) {
 
 func TestGetUserList(t *testing.T) {
 	users := []string{
-		`{"nickName":"list1","role":1}`,
-		`{"nickName":"list2","role":2}`,
-		`{"nickName":"list3","role":1}`,
-		`{"nickName":"list4","role":2}`,
+		`{"nickName":"list1","role":1,"userId":"userId1"}`,
+		`{"nickName":"list2","role":2,"userId":"userId2"}`,
+		`{"nickName":"list3","role":1,"userId":"userId3"}`,
+		`{"nickName":"list4","role":2,"userId":"userId4"}`,
 	}
 	for _, user := range users {
 		user := user

@@ -8,16 +8,28 @@ import (
 )
 
 type User struct {
-	UserId    string `json:"userId"`
+	UserId    string `json:"userId" binding:"required,min=1"`
 	NickName  string `json:"nickName" binding:"required,min=1"`
-	Role      uint32 `json:"role" binding:"required,oneof=1 2"`//1 anchor, 2 audience
-	LoginTime int64 `json:"loginTime"`
+	Role      uint32 `json:"role" binding:"required,oneof=1 2"` //1 anchor, 2 audience
+	LoginTime int64  `json:"loginTime"`
 }
 
 const (
 	BaseIdIncKey = "u:inc:id:"
 	BaseIdKey    = "u:id:"
 	AllIdsZSet   = "u:ids"
+	LuaScripts   = `
+local rcall = redis.call
+local key   = KEYS[1]
+local start = ARGV[1]
+local _end  = ARGV[2]
+
+local userIds = rcall("ZREVRANGE", key, start, _end)
+if #userIds == 0 then 
+	return nil
+end
+return rcall("MGET", unpack(userIds))
+`
 )
 
 var UserNotExist = errors.New("用户不存在")
@@ -35,18 +47,16 @@ func NewUserData(pool *redis.Pool) UserDataI {
 func (u UserData) GetUserList(skip, limit int) ([]interface{}, error) {
 	r := u.redisPool.Get()
 	defer r.Close()
-	reply, err := r.Do("ZREVRANGE", AllIdsZSet, skip, skip + limit-1)
+	scripts := redis.NewScript(1, LuaScripts)
+	reply, err := scripts.Do(r, AllIdsZSet, skip, skip + limit - 1)
+
 	if err != nil {
 		return nil, err
 	}
-	ids := reply.([]interface{})
-	if len(ids) == 0 {
+	if reply == nil {
 		return []interface{}{}, nil
 	}
-	reply, err = r.Do("MGET", ids...)
-	if err != nil {
-		return nil, err
-	}
+
 
 	return reply.([]interface{}), nil
 }
