@@ -9,8 +9,7 @@ curl --location --request POST 'localhost:8080/v1/user' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "nickName": "pdf13",
-    "role": 1,
-    "loginTime": 12345678
+    "role": 1
 }'
 ```
 
