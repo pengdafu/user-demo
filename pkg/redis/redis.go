@@ -11,6 +11,8 @@ func NewRedisPool(ctx context.Context, address string) *redis.Pool {
 		DialContext: func(ctx context.Context) (redis.Conn, error) {
 			return redis.DialContext(ctx, "tcp", address)
 		},
+		MaxActive: 400,
+		MaxIdle: 50,
 	}
 	return pool
 }
