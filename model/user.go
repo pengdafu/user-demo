@@ -1,4 +1,4 @@
-package data
+package model
 
 import (
 	"encoding/json"
@@ -18,7 +18,11 @@ const (
 	BaseIdIncKey = "u:inc:id:"
 	BaseIdKey    = "u:id:"
 	AllIdsZSet   = "u:ids"
-	LuaScripts   = `
+)
+
+// LuaScripts 提供一个 getUserList 的原子操作，由于需要
+// 先获取ids再去查询值，所以不能用MULTI处理
+const LuaScripts   = `
 local rcall = redis.call
 local key   = KEYS[1]
 local start = ARGV[1]
@@ -30,7 +34,6 @@ if #userIds == 0 then
 end
 return rcall("MGET", unpack(userIds))
 `
-)
 
 var UserNotExist = errors.New("用户不存在")
 

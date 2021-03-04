@@ -3,18 +3,14 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gomodule/redigo/redis"
-	"user/internal/service"
+	"user/controller"
 )
 
-func NewRoute(pool *redis.Pool) *gin.Engine {
-	r := gin.Default()
-	{
-		userSvc := service.NewUserService(pool)
-		userGroup := r.Group("/v1/user")
-		userGroup.GET("/", userSvc.GetUserList)
-		userGroup.POST("/", userSvc.AddUser)
-		userGroup.GET("/:userId", userSvc.GetUser)
-		userGroup.DELETE("/:userId", userSvc.DestroyUser)
-	}
-	return r
+func SetV1Route(r *gin.Engine, pool *redis.Pool)  {
+	userSvc := controller.NewUserService(pool)
+	userGroup := r.Group("/v1/user")
+	userGroup.GET("/", userSvc.GetUserList)
+	userGroup.POST("/", userSvc.AddUser)
+	userGroup.GET("/:userId", userSvc.GetUser)
+	userGroup.DELETE("/:userId", userSvc.DestroyUser)
 }
