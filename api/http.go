@@ -9,7 +9,6 @@ import (
 
 func NewGinEngine() *gin.Engine {
 	e := gin.New()
-	gin.Recovery()
 	e.Use(loggerM(), gin.Recovery())
 	return e
 }
