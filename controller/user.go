@@ -50,17 +50,17 @@ func (svc userService) GetUserList(ctx *gin.Context) {
 		})
 		return
 	}
-	users := make([]model.User, len(res))
-	for i, v := range res {
+
+	for i, v := range res.Rows {
 		u := model.User{}
 		v := string(v.([]uint8))
 		_ = json.Unmarshal([]byte(v), &u)
-		users[i] = u
+		res.Rows[i] = u
 	}
 	ctx.JSON(http.StatusOK, Result{
 		Code: 0,
 		Msg:  "success",
-		Res:  users,
+		Res:  res,
 	})
 }
 

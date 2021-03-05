@@ -105,7 +105,8 @@ func TestGetUserList(t *testing.T) {
 
 		assert.Equal(t, 0, res.Code)
 		assert.Equal(t, "success", res.Msg)
-		users := res.Res.([]interface{})
+		userListRes := res.Res.(map[string]interface{})
+		users := userListRes["rows"].([]interface{})
 		assert.Equal(t, 3, len(users))
 		for _, m := range users {
 			m := m.(map[string]interface{})
@@ -114,6 +115,9 @@ func TestGetUserList(t *testing.T) {
 				assert.Equal(t, true, ok)
 			}
 		}
+
+		count := userListRes["count"].(float64)
+		assert.GreaterOrEqual(t, int64(count), int64(3))
 	})
 }
 

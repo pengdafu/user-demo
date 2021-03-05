@@ -14,6 +14,11 @@ type User struct {
 	LoginTime int64  `json:"loginTime"`
 }
 
+type UserListRes struct {
+	Rows []interface{} `json:"rows"`
+	Count int64 `json:"count"`
+}
+
 const (
 	BaseIdIncKey = "u:inc:id:"
 	BaseIdKey    = "u:id:"
@@ -32,7 +37,8 @@ local userIds = rcall("ZREVRANGE", key, start, _end)
 if #userIds == 0 then 
 	return nil
 end
-return rcall("MGET", unpack(userIds))
+local users = rcall("MGET", unpack(userIds))
+return { users, rcall("ZCARD", key) }
 `
 
 var UserNotExist = errors.New("用户不存在")
@@ -47,7 +53,7 @@ func NewUserData(pool *redis.Pool) UserDataI {
 	}
 }
 
-func (u UserData) GetUserList(skip, limit int) ([]interface{}, error) {
+func (u UserData) GetUserList(skip, limit int) (*UserListRes, error) {
 	r := u.redisPool.Get()
 	defer r.Close()
 	scripts := redis.NewScript(1, LuaScripts)
@@ -57,11 +63,17 @@ func (u UserData) GetUserList(skip, limit int) ([]interface{}, error) {
 		return nil, err
 	}
 	if reply == nil {
-		return []interface{}{}, nil
+		return &UserListRes{
+			Rows: []interface{}{},
+			Count: 0,
+		}, nil
 	}
-
-
-	return reply.([]interface{}), nil
+	_res := reply.([]interface{})
+	res := &UserListRes{
+		Rows: _res[0].([]interface{}),
+		Count: _res[1].(int64),
+	}
+	return res, nil
 }
 
 func (u UserData) AddUser(user User) error {
@@ -122,7 +134,7 @@ func (u UserData) RandomUserId() (string, error) {
 }
 
 type UserDataI interface {
-	GetUserList(skip, limit int) ([]interface{}, error)
+	GetUserList(skip, limit int) (*UserListRes, error)
 	AddUser(user User) error
 	GetUser(userId string) (*User, error) // 不存在返回error
 	DestroyUser(userId string) error
